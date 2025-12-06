@@ -39,12 +39,17 @@ class AutonomousAppBuilder:
         return {'build_success': 1.0, 'deploy_fail': -1.0}  # Rewards
 
     async def generate_app(self, app_spec: Dict[str, Any]) -> Optional[str]:
-        """Autonomously generates app code using generative AI, ensuring PI integration."""
-        if not await self.ahi_ai.filter_transaction({'action': 'app_gen', 'spec': app_spec}):  # Filter via AHI AI
-            logging.error("App generation rejected: Volatile spec detected.")
+        """Autonomously generates app code using generative AI, ensuring PI integration and no gambling apps."""
+        # Explicit check for gambling to ensure no gambling apps are generated
+        gambling_keywords = ['gambling', 'casino', 'bet', 'lottery', 'poker', 'slot', 'jackpot', 'dice', 'roulette', 'blackjack']
+        if any(keyword in str(app_spec).lower() for keyword in gambling_keywords):
+            logging.error("App generation rejected: Gambling-related spec detected. No gambling apps allowed.")
+            return None
+        if not await self.ahi_ai.filter_transaction({'action': 'app_gen', 'spec': app_spec}):  # Filter via AHI AI (includes anti-gambling)
+            logging.error("App generation rejected: Volatile or non-compliant spec detected.")
             return None
         # Enforce PI-exclusive: All apps must use PI for transactions
-        prompt = f"Generate Python code for a Pi app: {app_spec['description']}. Must use PI Coin exclusively for payments. Integrate with PI Manager."
+        prompt = f"Generate Python code for a Pi app: {app_spec['description']}. Must use PI Coin exclusively for payments. Integrate with PI Manager. No gambling features."
         generated_code = self.code_generator(prompt, max_length=500, num_return_sequences=1)[0]['generated_text']
         # Hyper-enhance: Add PI imports and compliance checks
         enhanced_code = self._enhance_code_with_pi(generated_code)
@@ -67,6 +72,7 @@ COPY . /app
 RUN pip install -r requirements.txt
 CMD ["python", "app.py"]
 """
+        os.makedirs(f'./apps/{app_name}', exist_ok=True)
         with open(f'./apps/{app_name}/Dockerfile', 'w') as f:
             f.write(dockerfile_content)
         with open(f'./apps/{app_name}/app.py', 'w') as f:
@@ -76,7 +82,7 @@ CMD ["python", "app.py"]
             image, logs = self.docker_client.images.build(path=f'./apps/{app_name}', tag=f'{app_name}:latest')
             # Deploy container
             container = self.docker_client.containers.run(f'{app_name}:latest', detach=True, ports={'5000/tcp': 5000})
-            self.apps[app_name] = {'container_id': container.id, 'status': 'deployed'}
+            self.apps[app_name] = {'container_id': container.id, 'status': 'deployed', 'code': app_code}
             self._save_apps()
             self.pi_led.on()  # Green: success
             logging.info(f"App {app_name} deployed successfully.")
@@ -95,14 +101,17 @@ CMD ["python", "app.py"]
         """Autonomously monitors and manages deployed apps, scaling or healing as needed."""
         while True:
             for app_name, app_data in self.apps.items():
-                container = self.docker_client.containers.get(app_data['container_id'])
-                if container.status != 'running':
-                    logging.warning(f"App {app_name} not running. Self-healing...")
-                    # RL decision: Retry or rebuild
-                    if random.random() < 0.8:  # Based on RL rewards
-                        await self.build_and_deploy_app(app_name, self.apps[app_name].get('code', ''))
-                    else:
-                        logging.info(f"Scaling app {app_name}...")  # Simulate scaling
+                try:
+                    container = self.docker_client.containers.get(app_data['container_id'])
+                    if container.status != 'running':
+                        logging.warning(f"App {app_name} not running. Self-healing...")
+                        # RL decision: Retry or rebuild
+                        if random.random() < 0.8:  # Based on RL rewards
+                            await self.build_and_deploy_app(app_name, app_data.get('code', ''))
+                        else:
+                            logging.info(f"Scaling app {app_name}...")  # Simulate scaling
+                except Exception as e:
+                    logging.error(f"Error monitoring app {app_name}: {e}")
                 # Check Pi compliance
                 if self.ahi_ai.stellar_halted:  # From File 1
                     logging.critical("Pi compliance breached. Halting all apps.")
@@ -113,9 +122,12 @@ CMD ["python", "app.py"]
     def _halt_all_apps(self):
         """Halts all apps on compliance breach."""
         for app_name, app_data in self.apps.items():
-            container = self.docker_client.containers.get(app_data['container_id'])
-            container.stop()
-            logging.info(f"App {app_name} halted.")
+            try:
+                container = self.docker_client.containers.get(app_data['container_id'])
+                container.stop()
+                logging.info(f"App {app_name} halted.")
+            except Exception as e:
+                logging.error(f"Error halting app {app_name}: {e}")
         self.apps.clear()
         self._save_apps()
 
