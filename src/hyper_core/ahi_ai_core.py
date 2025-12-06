@@ -43,8 +43,21 @@ class AutonomousHyperIntelligenceAI:
         qc.measure_all()
         return qc
 
+    def _check_gambling_filter(self, data: Dict[str, Any]) -> bool:
+        """Filters out gambling-related content to ensure no gambling apps."""
+        gambling_keywords = ['gambling', 'casino', 'bet', 'lottery', 'poker', 'slot', 'jackpot', 'dice', 'roulette', 'blackjack']
+        for key, value in data.items():
+            if any(keyword in str(value).lower() for keyword in gambling_keywords):
+                return False
+        return True
+
     async def filter_transaction(self, transaction_data: Dict[str, Any]) -> bool:
-        """Filters transactions in real-time using AI and quantum optimization."""
+        """Filters transactions in real-time using AI and quantum optimization, including anti-gambling."""
+        # First, check for gambling content
+        if not self._check_gambling_filter(transaction_data):
+            logging.error("Rejected gambling-related transaction.")
+            self._isolate_volatile_input(transaction_data)
+            return False
         # Encode transaction data
         encoded = self._encode_data(transaction_data)
         # Neural prediction
