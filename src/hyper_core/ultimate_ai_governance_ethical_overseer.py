@@ -46,23 +46,29 @@ class UltimateAIGovernanceEthicalOverseer:
             'ethical_ai': 'bias_free',
             'founder_accountability': 'zero_tolerance',
             'volatile_rejection': 'auto_halt',
+            'no_gambling': 'absolute',  # Added: Zero-tolerance for gambling
             'evolution_threshold': 10  # Incidents before rule evolution
         }
 
     async def audit_ai_ethics(self):
-        """Audits AHI AI and other systems for ethical compliance."""
+        """Audits AHI AI and other systems for ethical compliance, including anti-gambling."""
         while True:
             # Audit AHI AI decisions
-            sample_decisions = ['Rejected volatile tx', 'Approved PI tx', 'Halted Stellar']
+            sample_decisions = ['Rejected volatile tx', 'Approved PI tx', 'Halted Stellar', 'Rejected gambling app']
             for decision in sample_decisions:
                 sentiment = self.ethical_auditor(decision)[0]['label']
                 if sentiment == 'NEGATIVE':
                     logging.warning(f"Unethical AI decision detected: {decision}")
                     self.unethical_incidents += 1
                     await self._enforce_ethical_correction()
-            # Audit PI transactions for ethics
+            # Audit for gambling as unethical behavior
+            gambling_keywords = ['gambling', 'casino', 'bet', 'lottery', 'poker', 'slot']
             for tx in self.pi_manager.transactions[-10:]:  # Last 10
-                if not await self.purity_enforcer.enforce_pi_purity(tx):
+                if any(keyword in str(tx).lower() for keyword in gambling_keywords):
+                    logging.error(f"Gambling-related transaction detected: {tx}. Treating as unethical.")
+                    self.unethical_incidents += 1
+                    await self._enforce_ethical_correction()
+                elif not await self.purity_enforcer.enforce_pi_purity(tx):
                     self.unethical_incidents += 1
             # Evolve rules if threshold met
             if self.unethical_incidents >= self.governance_rules['evolution_threshold']:
@@ -70,8 +76,8 @@ class UltimateAIGovernanceEthicalOverseer:
             await asyncio.sleep(1800)  # Audit every 30 minutes
 
     async def _enforce_ethical_correction(self):
-        """Enforces corrections for unethical behaviors."""
-        logging.info("Enforcing ethical correction.")
+        """Enforces corrections for unethical behaviors, including gambling bans."""
+        logging.info("Enforcing ethical correction. Reinforcing no-gambling policy.")
         self.ethics_led.off()  # Red: unethical
         self.alert_buzzer.beep(on_time=1, off_time=1, n=5)
         # Halt unethical AI via Core (File 6)
@@ -80,16 +86,17 @@ class UltimateAIGovernanceEthicalOverseer:
         await self.security.secure_pi_transaction({'id': 'ethics_correction', 'amount': 0})
 
     async def _evolve_governance_rules(self):
-        """Self-evolves governance rules based on incidents."""
-        logging.info("Evolving governance rules for better ethics.")
+        """Self-evolves governance rules based on incidents, strengthening anti-gambling."""
+        logging.info("Evolving governance rules for better ethics, including stricter no-gambling.")
         self.governance_rules['evolution_threshold'] += 5
         self.governance_rules['ethical_ai'] = 'hyper_transparent'
+        self.governance_rules['no_gambling'] = 'eternal_ban'  # Strengthen anti-gambling
         with open('./governance_rules.json', 'w') as f:
             json.dump(self.governance_rules, f)
         self.unethical_incidents = 0  # Reset
 
     async def monitor_global_ethics(self):
-        """Monitors global Pi Network ethics and halts on violations."""
+        """Monitors global Pi Network ethics and halts on violations, including gambling infiltrations."""
         while True:
             # Check Oracle compliance (File 11)
             report = await self.oracle.generate_compliance_report()
@@ -100,7 +107,7 @@ class UltimateAIGovernanceEthicalOverseer:
             await asyncio.sleep(3600)  # Check hourly
 
     async def _global_ethics_lockdown(self):
-        """Locks down the ecosystem for ethics violations."""
+        """Locks down the ecosystem for ethics violations, banning all gambling-related activities."""
         self.ethics_led.off()  # Red: lockdown
         self.alert_buzzer.beep(on_time=2, off_time=1, n=10)
         # Freeze PI via Purity Enforcer (File 10)
@@ -109,22 +116,24 @@ class UltimateAIGovernanceEthicalOverseer:
         self.core._trigger_system_rebirth()
 
     async def manual_governance_vote(self):
-        """Handles manual governance votes via button."""
+        """Handles manual governance votes via button, allowing reinforcement of no-gambling."""
         while True:
             if self.vote_button.is_pressed:
-                logging.info("Manual governance vote triggered: Reinforce PI exclusivity.")
+                logging.info("Manual governance vote triggered: Reinforce PI exclusivity and no-gambling.")
                 self.governance_rules['pi_exclusivity'] = 'ultra_mandatory'
+                self.governance_rules['no_gambling'] = 'absolute_zero'
                 await self._evolve_governance_rules()
                 self.ethics_led.blink(on_time=0.5, off_time=0.5, n=3)
             await asyncio.sleep(1)
 
     async def generate_ethical_audit_report(self) -> Dict[str, Any]:
-        """Generates holographic ethical audit report."""
+        """Generates holographic ethical audit report, including gambling checks."""
         report = {
             'unethical_incidents': self.unethical_incidents,
             'governance_rules': self.governance_rules,
             'ai_status': 'Ethical' if self.unethical_incidents == 0 else 'Under Review',
-            'pi_purity': 'Maintained' if self.purity_enforcer.frozen_pi_supply == 0 else 'Compromised'
+            'pi_purity': 'Maintained' if self.purity_enforcer.frozen_pi_supply == 0 else 'Compromised',
+            'gambling_free': 'Confirmed' if self.governance_rules['no_gambling'] == 'absolute' else 'Enforced'
         }
         self.ethical_audits.append(report)
         with open('./ethical_audit_hologram.json', 'w') as f:
