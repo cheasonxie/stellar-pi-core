@@ -1,0 +1,18 @@
+[workspace]
+resolver = "2"
+members = ["src/rust"]
+
+[profile.release]
+codegen-units = 1
+lto = true
+
+# Package metadata for the workspace (optional, for documentation)
+[package]
+name = "pi-ecosystem-workspace"
+version = "0.1.0"
+edition = "2025"
+authors = ["KOSASIH"]
+description = "Workspace for Hyper-tech Pi Ecosystem Super App Smart Contracts on Stellar/Soroban"
+license = "MIT"
+keywords = ["stellar", "soroban", "pi", "blockchain", "stablecoin"]
+categories = ["cryptography::cryptocurrencies", "smart-contracts"]
