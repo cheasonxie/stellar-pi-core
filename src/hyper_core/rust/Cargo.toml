@@ -1,18 +1,33 @@
-[workspace]
-resolver = "2"
-members = ["src/rust"]
-
-[profile.release]
-codegen-units = 1
-lto = true
-
-# Package metadata for the workspace (optional, for documentation)
 [package]
-name = "pi-ecosystem-workspace"
+name = "super_pi_ecosystem"
 version = "0.1.0"
 edition = "2025"
 authors = ["KOSASIH"]
-description = "Workspace for Hyper-tech Pi Ecosystem Super App Smart Contracts on Stellar/Soroban"
+description = "Super Pi Ecosystem: Hyper-Tech Autonomous Smart Contract for Full Pi Network Mainnet Opening and Decentralization, Now Maximized for Handling Millions of Developer Apps with Scalability, AI Management, Eternal Governance, High Performance, Security Enforcement, and Compliance Verification"
 license = "MIT"
-keywords = ["stellar", "soroban", "pi", "blockchain", "stablecoin"]
-categories = ["cryptography::cryptocurrencies", "smart-contracts"]
+keywords = ["pi-network", "soroban", "blockchain", "decentralization", "ai", "quantum", "apps", "scalability", "governance", "security", "compliance"]
+categories = ["cryptography::cryptocurrencies", "smart-contracts", "development-tools::build-utils"]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+soroban-sdk = "0.10"
+
+[dev-dependencies]
+soroban-sdk = { version = "0.10", features = ["testutils"] }
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
+overflow-checks = true
+
+[workspace]
+resolver = "2"
+members = ["."]
