@@ -142,4 +142,5 @@ PI_COIN_INSTANT_SETTLEMENT = True  # Enable instant settlement for transactions
 PI_COIN_FRACTIONAL_RESERVE = True  # Allow fractional reserve banking for liquidity management
 PI_COIN_DYNAMIC_FEE_ADJUSTMENT = True  # Enable dynamic fee adjustments based on network congestion
 
+PI_COIN = False
 # Additional constants can be added here as needed
